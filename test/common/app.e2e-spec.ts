@@ -1,4 +1,12 @@
+import passport from '@fastify/passport';
 import { INestApplication } from '@nestjs/common';
+import fastifySecureSession from '@fastify/secure-session';
+import * as path from 'path';
+import * as fs from 'fs';
+import {
+  FastifyAdapter,
+  NestFastifyApplication
+} from '@nestjs/platform-fastify';
 import { Test } from '@nestjs/testing';
 import { spec, request } from 'pactum';
 import { AppModule as WithRegisterModule } from '../with-register/app.module';
@@ -15,8 +23,21 @@ describe.each`
     const modRef = await Test.createTestingModule({
       imports: [AppModule]
     }).compile();
-    app = modRef.createNestApplication();
+
+    app = modRef.createNestApplication<NestFastifyApplication>(
+      new FastifyAdapter()
+    );
+    app
+      .getHttpAdapter()
+      .getInstance()
+      .register(fastifySecureSession, {
+        key: fs.readFileSync(path.join(__dirname, 'secret-key'))
+      });
+    app.getHttpAdapter().getInstance().register(passport.initialize());
+    app.getHttpAdapter().getInstance().register(passport.secureSession());
+
     await app.listen(0);
+
     const url = (await app.getUrl()).replace('[::1]', 'localhost');
     request.setBaseUrl(url);
   });
@@ -34,6 +55,7 @@ describe.each`
         .expectBody({ message: 'Hello secure world!' });
     });
   });
+
   describe('UnauthenticatedFlow', () => {
     it('should return a 401 for an invalid login', async () => {
       await spec()

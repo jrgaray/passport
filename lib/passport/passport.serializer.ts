@@ -1,15 +1,15 @@
-import * as passport from 'passport';
+import passport from '@fastify/passport';
 
 export abstract class PassportSerializer {
-  abstract serializeUser(user: any, done: Function);
-  abstract deserializeUser(payload: any, done: Function);
+  abstract serializeUser(user: any, done: any);
+  abstract deserializeUser(payload: any, done: any);
 
   constructor() {
     const passportInstance = this.getPassportInstance();
-    passportInstance.serializeUser((user, done) =>
+    passportInstance.registerUserSerializer((user, done) =>
       this.serializeUser(user, done)
     );
-    passportInstance.deserializeUser((payload, done) =>
+    passportInstance.registerUserDeserializer((payload, done) =>
       this.deserializeUser(payload, done)
     );
   }

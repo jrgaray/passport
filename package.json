@@ -8,13 +8,10 @@
     "build": "rimraf dist && tsc -p tsconfig.build.json",
     "format": "prettier --write \"lib/**/*.ts\"",
     "lint": "eslint 'lib/**/*.ts' --fix",
-    "precommit": "lint-staged",
-    "prepublish:npm": "npm run build",
     "publish:npm": "npm publish --access public",
     "prerelease": "npm run build",
     "release": "release-it",
     "test": "jest",
-    "prepare": "husky install"
   },
   "peerDependencies": {
     "@nestjs/common": "^8.0.0 || ^9.0.0",
@@ -23,10 +20,12 @@
   "devDependencies": {
     "@commitlint/cli": "17.3.0",
     "@commitlint/config-angular": "17.3.0",
+    "@fastify/secure-session": "^5.3.0",
     "@nestjs/common": "9.2.1",
     "@nestjs/core": "9.2.1",
     "@nestjs/jwt": "9.0.0",
     "@nestjs/platform-express": "9.2.1",
+    "@nestjs/platform-fastify": "^9.2.1",
     "@nestjs/testing": "9.2.1",
     "@types/jest": "29.2.4",
     "@types/node": "18.11.15",
@@ -59,5 +58,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/nestjs/passport"
+  },
+  "dependencies": {
+    "@fastify/passport": "^2.2.0"
   }
 }

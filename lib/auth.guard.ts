@@ -8,7 +8,7 @@ import {
   Optional,
   UnauthorizedException
 } from '@nestjs/common';
-import * as passport from 'passport';
+import passport from '@fastify/passport';
 import { Type } from './interfaces';
 import {
   AuthModuleOptions,
@@ -21,8 +21,16 @@ export type IAuthGuard = CanActivate & {
   logIn<TRequest extends { logIn: Function } = any>(
     request: TRequest
   ): Promise<void>;
-  handleRequest<TUser = any>(err, user, info, context: ExecutionContext, status?): TUser;
-  getAuthenticateOptions(context: ExecutionContext): IAuthModuleOptions | undefined;
+  handleRequest<TUser = any>(
+    err,
+    user,
+    info,
+    context: ExecutionContext,
+    status?
+  ): TUser;
+  getAuthenticateOptions(
+    context: ExecutionContext
+  ): IAuthModuleOptions | undefined;
 };
 export const AuthGuard: (type?: string | string[]) => Type<IAuthGuard> =
   memoize(createAuthGuard);
@@ -52,13 +60,25 @@ function createAuthGuard(type?: string | string[]): Type<CanActivate> {
         this.getRequest(context),
         this.getResponse(context)
       ];
-      const passportFn = createPassportContext(request, response);
-      const user = await passportFn(
+
+      const pFunc = passportFn(
         type || this.options.defaultStrategy,
         options,
-        (err, user, info, status) =>
-          this.handleRequest(err, user, info, context, status)
+        (req, reply, err, user, info, status) => {
+          return this.handleRequest(
+            req,
+            reply,
+            err,
+            user,
+            info,
+            context,
+            status
+          );
+        }
       );
+      const user = await (pFunc as any)(request, response);
+      console.log({ user });
+
       request[options.property || defaultOptions.property] = user;
       return true;
     }
@@ -80,10 +100,8 @@ function createAuthGuard(type?: string | string[]): Type<CanActivate> {
       );
     }
 
-    handleRequest(err, user, info, context, status): TUser {
-      if (err || !user) {
-        throw err || new UnauthorizedException();
-      }
+    handleRequest(req, reply, err, user, info, context, status): TUser {
+      if (err || !user) throw err || new UnauthorizedException();
       return user;
     }
 
@@ -97,15 +115,12 @@ function createAuthGuard(type?: string | string[]): Type<CanActivate> {
   return guard;
 }
 
-const createPassportContext =
-  (request, response) => (type, options, callback: Function) =>
-    new Promise<void>((resolve, reject) =>
-      passport.authenticate(type, options, (err, user, info, status) => {
-        try {
-          request.authInfo = info;
-          return resolve(callback(err, user, info, status));
-        } catch (err) {
-          reject(err);
-        }
-      })(request, response, (err) => (err ? reject(err) : resolve()))
-    );
+const passportFn = (type, options, callback: Function) =>
+  passport.authenticate(
+    type,
+    options,
+    async (request, response, err, user, info, status) => {
+      request.authInfo = info;
+      return callback(request, response, err, user, info, status);
+    }
+  );
