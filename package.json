@@ -1,7 +1,7 @@
 {
-  "name": "@nestjs/passport",
+  "name": "jrgaray/passport",
   "version": "9.0.0",
-  "description": "Nest - modern, fast, powerful node.js web framework (@passport)",
+  "description": "Nest Fastify Passport Integration",
   "author": "Kamil Mysliwiec",
   "license": "MIT",
   "scripts": {
@@ -57,7 +57,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/nestjs/passport"
+    "url": "https://github.com/jrgaray/passport"
   },
   "dependencies": {
     "@fastify/passport": "^2.2.0"
