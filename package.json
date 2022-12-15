@@ -1,5 +1,5 @@
 {
-  "name": "jrgaray/passport",
+  "name": "nest-fastify-passport",
   "version": "9.0.0",
   "description": "Nest Fastify Passport Integration",
   "author": "Kamil Mysliwiec",
